@@ -474,7 +474,7 @@ st.divider()
 st.subheader("反馈闭环 | Feedback Loop")
 st.markdown(
     "如果模型识别错误，选择或输入真实数字并保存反馈。系统会把图片和标签写入 `feedback/`。"
-    "点击更新模型后会离线重训练并直接覆盖当前 `digit_classifier.pt`，不会保留旧模型备份。"
+    "点击更新模型后会离线重训练并发布新的版本化模型，`latest.json` 会指向当前启用版本。"
 )
 with st.expander("模型更新判断标准 | Model Update Criteria", expanded=False):
     st.markdown(

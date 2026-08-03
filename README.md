@@ -14,6 +14,26 @@ The current model focuses on MNIST-style handwritten digits. The app includes an
 
 当前模型主要面向 MNIST 风格的单个手写数字。应用中包含实验性的 `0-999` 多位数字模式，其实现方式是字符分割加逐位 CNN 分类，但核心训练数据和评估目标仍然是 MNIST 单数字识别。
 
+## Screenshots
+
+Main Streamlit interface:
+
+![Main interface](docs/screenshots/01-main-interface.png)
+
+Feedback loop and offline model update controls:
+
+![Feedback loop](docs/screenshots/02-feedback-loop.png)
+
+Training metrics, curve, and test confusion matrix:
+
+![Training results](docs/screenshots/03-training-results.png)
+
+中文截图说明：
+
+- 主界面展示手写画布、识别入口和预测结果区域。
+- 反馈闭环展示反馈样本统计、更新门槛和离线更新入口。
+- 训练结果展示最新本地训练的核心指标、训练曲线和测试集混淆矩阵。
+
 ## Highlights
 
 - CNN-based handwritten digit recognition
