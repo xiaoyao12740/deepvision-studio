@@ -10,16 +10,16 @@ This project is designed as a small product-style computer vision demo rather th
 
 本项目定位为一个产品化的小型计算机视觉演示，而不是单独的训练脚本。它展示了如何把图像分类模型封装成可交互应用：用户可以手写数字、查看预测置信度、纠正错误，并把这些纠错样本纳入后续离线优化流程。
 
-The current model focuses on MNIST-style handwritten digits. The app includes an experimental `0-999` recognition mode by segmenting and predicting multiple digits, but the core training data and evaluation target remain single MNIST digits.
+The current model focuses on MNIST-style handwritten digits. The app includes an experimental multi-digit mode for `0-999` by character segmentation plus per-digit CNN classification, but the core training data and evaluation target remain single MNIST digits.
 
-当前模型主要面向 MNIST 风格的单个手写数字。应用中包含实验性的 `0-999` 多位数字识别模式，通过切分后逐位预测实现，但核心训练数据和评估目标仍然是 MNIST 单数字识别。
+当前模型主要面向 MNIST 风格的单个手写数字。应用中包含实验性的 `0-999` 多位数字模式，其实现方式是字符分割加逐位 CNN 分类，但核心训练数据和评估目标仍然是 MNIST 单数字识别。
 
 ## Highlights
 
 - CNN-based handwritten digit recognition
 - Streamlit canvas interface for drawing digits
 - MNIST-style preprocessing with inversion, cropping, resizing, and centering
-- Single-digit and experimental multi-digit prediction workflow
+- Single-digit prediction and experimental segmentation-based multi-digit workflow
 - Prediction confidence display and probability visualization
 - User feedback collection with image snapshots, predictions, labels, confidence, and timestamps
 - Feedback analysis with common mistake patterns and confusion matrix export
@@ -33,7 +33,7 @@ The current model focuses on MNIST-style handwritten digits. The app includes an
 - 使用 CNN 完成手写数字识别
 - 提供 Streamlit 画布交互界面
 - 包含反色、裁剪、缩放、居中等 MNIST 风格预处理
-- 支持单数字识别和实验性的多位数字识别流程
+- 支持单数字识别和实验性的字符分割式多位数字流程
 - 展示预测置信度和概率分布图
 - 收集用户反馈，包括图片、预测值、真实标签、置信度和时间戳
 - 分析反馈数据，输出常见错误模式和混淆矩阵
@@ -51,6 +51,7 @@ MNIST data
   -> Streamlit drawing interface
   -> prediction and confidence display
   -> user correction feedback
+  -> validation and cleaning
   -> feedback analysis
   -> offline retraining
   -> versioned model update
@@ -65,6 +66,7 @@ MNIST 数据
   -> Streamlit 手写交互界面
   -> 预测与置信度展示
   -> 用户纠错反馈
+  -> 样本校验与清洗
   -> 反馈数据分析
   -> 离线再训练
   -> 模型版本更新
@@ -75,6 +77,7 @@ MNIST 数据
 - `outputs/metrics.json`
 - `outputs/train_log.csv`
 - `outputs/training_curve.png`
+- `outputs/confusion_matrix.png`
 - `outputs/sample_predictions.png`
 - `outputs/probability_chart.png`
 - `outputs/feedback_analysis.json`
@@ -85,9 +88,41 @@ MNIST 数据
 - `models/digit_classifier_v*.pt`
 - `models/latest.json`
 
-These outputs cover model metrics, training logs, visual evaluation samples, prediction probability charts, feedback analysis results, model comparison records, HTML reporting, saved checkpoints, and the active model pointer.
+These outputs cover accuracy, loss, macro precision, macro recall, macro F1, per-class metrics, test confusion matrix, training logs, visual evaluation samples, prediction probability charts, feedback analysis results, model comparison records, HTML reporting, saved checkpoints, and the active model pointer.
 
-这些输出覆盖了模型指标、训练日志、样例预测图、预测概率图、反馈分析结果、模型对比记录、HTML 报告、已保存模型权重和当前模型版本指针，便于复现实验和检查项目完整性。
+这些输出覆盖了准确率、损失值、宏平均 precision、宏平均 recall、宏平均 F1、逐类别指标、测试集混淆矩阵、训练日志、样例预测图、预测概率图、反馈分析结果、模型对比记录、HTML 报告、已保存模型权重和当前模型版本指针，便于复现实验和检查项目完整性。
+
+## Results
+
+Latest local training run with `cnn_optimized` on MNIST test data:
+
+| Metric | Value |
+| --- | ---: |
+| Accuracy | 0.9914 |
+| Loss | 0.0247 |
+| Macro Precision | 0.9913 |
+| Macro Recall | 0.9914 |
+| Macro F1 | 0.9914 |
+| Test Samples | 10,000 |
+| Trainable Parameters | 468,202 |
+| Training Time | 289.5 seconds on CPU |
+
+The weakest class-level recall in this run is digit `9` at `0.9802`, which makes the confusion matrix useful for checking whether later feedback reduces those mistakes.
+
+当前本地训练结果使用 `cnn_optimized` 模型，并在 MNIST 测试集上评估：
+
+| 指标 | 数值 |
+| --- | ---: |
+| 准确率 | 0.9914 |
+| 损失值 | 0.0247 |
+| 宏平均 Precision | 0.9913 |
+| 宏平均 Recall | 0.9914 |
+| 宏平均 F1 | 0.9914 |
+| 测试样本数 | 10,000 |
+| 可训练参数量 | 468,202 |
+| 训练耗时 | CPU 上约 289.5 秒 |
+
+本轮结果中召回率相对最低的是数字 `9`，为 `0.9802`。后续可以用测试集混淆矩阵和反馈混淆矩阵观察这类错误是否被反馈数据改善。
 
 ## Project Structure
 
@@ -109,6 +144,7 @@ These outputs cover model metrics, training logs, visual evaluation samples, pre
     latest.json
   outputs/
     metrics.json
+    confusion_matrix.png
     feedback_analysis.json
     confusion_feedback.png
     train_log.csv
@@ -181,6 +217,7 @@ User drawing
   -> model prediction
   -> user correction
   -> feedback/images + feedback/labels.csv
+  -> validation and cleaning
   -> feedback analysis
   -> offline retraining
   -> new model version
@@ -194,15 +231,16 @@ User drawing
   -> 模型预测
   -> 用户纠错
   -> 保存反馈图片与标签记录
+  -> 样本校验与清洗
   -> 分析反馈数据
   -> 离线再训练
   -> 生成新模型版本
   -> latest.json 指向当前启用模型
 ```
 
-The project intentionally avoids immediate one-sample online updates. The default suggested threshold is `100` valid single-digit feedback samples, controlled by:
+The project intentionally avoids immediate one-sample online updates. A more production-like workflow would validate feedback, clean invalid samples, optionally review labels manually, and then expand the training set. The default suggested threshold is `100` valid single-digit feedback samples, controlled by:
 
-项目刻意避免基于单个样本立即在线更新模型。默认建议至少收集 `100` 条有效单数字反馈样本后再更新模型，该阈值由以下配置控制：
+项目刻意避免基于单个样本立即在线更新模型。更接近真实业务的流程应先校验反馈、清洗无效样本、必要时进行人工复核，然后再扩充训练集。默认建议至少收集 `100` 条有效单数字反馈样本后再更新模型，该阈值由以下配置控制：
 
 ```json
 "min_feedback_before_update": 100
@@ -252,7 +290,7 @@ The compose file mounts `feedback/`, `models/`, and `outputs/` so feedback data,
 ## Known Limits
 
 - The training target is MNIST-style single-digit classification.
-- Multi-digit recognition is an experimental segmentation-and-prediction workflow, not a full OCR system.
+- Multi-digit recognition is an experimental character-segmentation-and-classification workflow, not OCR, sequence recognition, or digit detection.
 - Feedback images and model weights are local artifacts and are not committed to the repository by default.
 - The app is local-first and single-user; it does not include authentication, database storage, or production monitoring.
 - Retraining quality depends on the amount and correctness of collected feedback samples.
@@ -260,7 +298,7 @@ The compose file mounts `feedback/`, `models/`, and `outputs/` so feedback data,
 中文补充：
 
 - 当前训练目标是 MNIST 风格的单数字分类
-- 多位数字识别属于实验性的切分加逐位预测流程，不是完整 OCR 系统
+- 多位数字识别属于实验性的字符分割加逐位分类流程，不是 OCR、序列识别或数字检测系统
 - 反馈图片和模型权重属于本地产物，默认不提交到仓库
 - 当前应用以本地单用户演示为主，暂未加入登录鉴权、数据库和生产级监控
 - 再训练效果取决于反馈样本的数量和标注准确性

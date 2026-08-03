@@ -13,7 +13,7 @@ from evaluate import evaluate_model, save_metrics
 from models import build_model
 from model_registry import next_version_path, write_latest
 from reporter import build_report
-from visualize import save_sample_predictions, save_training_curve
+from visualize import save_confusion_matrix, save_sample_predictions, save_training_curve
 
 
 def load_config(project_root: Path):
@@ -94,12 +94,12 @@ def main():
     started_at = time.perf_counter()
     for epoch in range(1, config["training"]["epochs"] + 1):
         loss = train_one_epoch(model, train_loader, loss_fn, optimizer, device)
-        metrics = evaluate_model(model, test_loader, device)
+        metrics = evaluate_model(model, test_loader, device, loss_fn)
         history.append({"epoch": epoch, "loss": loss, "accuracy": metrics["accuracy"]})
         print(f"Epoch {epoch}: loss={loss:.4f}, accuracy={metrics['accuracy']:.4f}")
     training_seconds = time.perf_counter() - started_at
 
-    final_metrics = evaluate_model(model, test_loader, device)
+    final_metrics = evaluate_model(model, test_loader, device, loss_fn)
     final_metrics["history"] = history
     final_metrics["model_type"] = model_type
     final_metrics["device"] = str(device)
@@ -121,6 +121,7 @@ def main():
     save_metrics(final_metrics, resolve(project_root, config["outputs"]["metrics_path"]))
     save_train_log(history, resolve(project_root, config["outputs"]["train_log_path"]))
     save_training_curve(history, resolve(project_root, config["outputs"]["training_curve_path"]))
+    save_confusion_matrix(final_metrics["confusion_matrix"], resolve(project_root, config["outputs"]["confusion_matrix_path"]))
     save_sample_predictions(model, test_loader, device, resolve(project_root, config["outputs"]["sample_predictions_path"]))
     build_report(
         model_type=model_type,

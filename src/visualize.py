@@ -66,3 +66,23 @@ def save_training_curve(history, output_path: Path):
     plt.tight_layout()
     plt.savefig(output_path, dpi=160)
     plt.close()
+
+
+def save_confusion_matrix(matrix, output_path: Path, title="Test Confusion Matrix"):
+    output_path.parent.mkdir(exist_ok=True)
+    plt.figure(figsize=(7, 6))
+    image = plt.imshow(matrix, cmap="Blues")
+    plt.title(title)
+    plt.xlabel("Predicted label")
+    plt.ylabel("True label")
+    plt.xticks(range(10))
+    plt.yticks(range(10))
+    for y in range(10):
+        for x in range(10):
+            value = matrix[y][x]
+            if value:
+                plt.text(x, y, str(value), ha="center", va="center", color="black", fontsize=8)
+    plt.colorbar(image, fraction=0.046, pad=0.04)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=160)
+    plt.close()
