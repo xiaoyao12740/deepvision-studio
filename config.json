@@ -1,0 +1,31 @@
+{
+  "data": {
+    "dataset": "mnist",
+    "data_dir": "data",
+    "batch_size": 64,
+    "test_batch_size": 128
+  },
+  "training": {
+    "model_type": "cnn_optimized",
+    "epochs": 3,
+    "learning_rate": 0.001,
+    "random_state": 42,
+    "device": "auto"
+  },
+  "outputs": {
+    "model_path": "models/digit_classifier.pt",
+    "latest_model_path": "models/latest.json",
+    "min_feedback_before_update": 100,
+    "metrics_path": "outputs/metrics.json",
+    "train_log_path": "outputs/train_log.csv",
+    "training_curve_path": "outputs/training_curve.png",
+    "model_comparison_path": "outputs/model_comparison.csv",
+    "sample_predictions_path": "outputs/sample_predictions.png",
+    "probability_chart_path": "outputs/probability_chart.png",
+    "report_path": "outputs/report.html"
+  },
+  "feedback": {
+    "images_dir": "feedback/images",
+    "labels_path": "feedback/labels.csv"
+  }
+}

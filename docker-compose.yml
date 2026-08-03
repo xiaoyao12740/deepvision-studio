@@ -1,0 +1,9 @@
+services:
+  deepvision-studio:
+    build: .
+    ports:
+      - "8503:8503"
+    volumes:
+      - ./feedback:/app/feedback
+      - ./models:/app/models
+      - ./outputs:/app/outputs
