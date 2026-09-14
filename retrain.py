@@ -146,6 +146,7 @@ def main():
         {
             "model_state_dict": model.state_dict(),
             "model_type": model_type,
+            "version": version,
             "metrics": final_metrics,
             "feedback_samples": feedback_count,
             "parameter_count": parameter_count,

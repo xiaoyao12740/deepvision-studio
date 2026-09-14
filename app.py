@@ -300,6 +300,9 @@ def run_model_update_ui(metrics_path: Path, feedback_count: int):
     log_box = st.empty()
     output = run_retrain(progress_bar, status_box, log_box)
     show_update_judgement(metrics_path, feedback_count)
+    st.session_state["model_update_completed"] = True
+    st.session_state["model_update_output"] = output
+    st.rerun()
     return output
 
 
@@ -361,6 +364,9 @@ labels_path = resolve(PROJECT_ROOT, config["feedback"]["labels_path"])
 metrics_path = resolve(PROJECT_ROOT, config["outputs"]["metrics_path"])
 ensure_feedback_store(images_dir, labels_path)
 
+if st.session_state.pop("model_update_completed", False):
+    st.success("新模型已发布并重新加载，后续识别将使用最新版本。New model published and loaded.")
+
 st.info("在下方黑色画布中写 0-999 的数字，点击识别；如果结果不对，在反馈区提交真实标签。反馈只会保存为数据，不会在线训练模型。")
 
 left, right = st.columns([1.05, 1], gap="large")
@@ -395,7 +401,7 @@ with left:
         width=canvas_size,
         height=canvas_size,
         drawing_mode="freedraw",
-        display_toolbar=False,
+        return_image_data=True,
         key=f"digit_canvas_{st.session_state['canvas_version']}_{canvas_size}",
     )
 
@@ -558,4 +564,8 @@ if st.button("立即离线更新模型 / Update Model Now", use_container_width=
     except Exception as exc:
         st.error(f"模型更新失败 / Model update failed: {exc}")
 
-st.caption(f"模型 | Model: {checkpoint.get('model_type', 'unknown')}    设备 | Device: {device}")
+st.caption(
+    f"模型 | Model: {checkpoint.get('model_type', 'unknown')}    "
+    f"版本 | Version: v{checkpoint.get('version', 'legacy')}    "
+    f"设备 | Device: {device}"
+)

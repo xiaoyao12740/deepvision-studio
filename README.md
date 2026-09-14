@@ -322,3 +322,18 @@ The compose file mounts `feedback/`, `models/`, and `outputs/` so feedback data,
 - 反馈图片和模型权重属于本地产物，默认不提交到仓库
 - 当前应用以本地单用户演示为主，暂未加入登录鉴权、数据库和生产级监控
 - 再训练效果取决于反馈样本的数量和标注准确性
+
+## 使用 Docker 运行
+
+本机已部署成功，通过 docker-compose 管理（基础镜像与依赖源已调整为国内可访问源，构建无需科学上网）。
+
+```bash
+# 在项目目录下执行
+docker compose up -d --build   # 启动（首次构建较慢，之后秒起）
+docker compose down            # 停止
+docker compose logs -f         # 查看日志
+```
+
+- 访问地址：http://localhost:8503
+- 与其他项目端口互不冲突，可同时运行
+
